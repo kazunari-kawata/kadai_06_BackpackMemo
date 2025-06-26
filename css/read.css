@@ -1,0 +1,72 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 2rem;
+    color: #333;
+    text-align: center;
+}
+h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+a[href="./index.php"] {
+    display: inline-block;
+    margin-bottom: 2rem;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+a[href="./index.php"]:hover {
+    background-color: #0056b3;
+}
+
+#map {
+    width: 80%;
+    height: 100%;
+    margin: 0 auto 2rem auto;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 地図下のカード部分 */
+#visit-list {
+    width: 80%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin: 2rem auto;
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.visit-card {
+    width: calc((100% - 3rem) / 3);
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    text-align: left;
+    transition: transform 0.2s;
+}
+
+.visit-card:hover {
+    transform: translateY(-4px);
+}
+
+.visit-card h3 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #004289;
+}
