@@ -37,5 +37,5 @@ Google Cloud Console の Geolocation API を活用し、ジャーナルに地名
 
 **本来は画像投稿機能なども追加したかった**のですが、提出日午前の所用のため、提出前夜の時点で改良を断念せざるを得ませんでした。後悔はありますが、今の自分の力量と経験の中で「やりすぎない」ことの大切さを学びました。
 
-> 地に足のついたテーマで、最初から計画的に取り組むことの重要性を痛感した１週間でした。 I have to do something with improving my skills with PHP otherwise I would't be able to attend GGA thoguh other people working on their products while doing their work Thta's the biggest fear in me to proved I'm useless.
+> 地に足のついたテーマで、最初から計画的に取り組むことの重要性を痛感した１週間でした。 I have to do something with improving my skills with PHP otherwise I would't be able to attend GGA whilte other people working on their products doing their work. Thta's the biggest fear in me to proved I'm useless.
 ---
