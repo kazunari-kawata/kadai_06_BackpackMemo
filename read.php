@@ -1,116 +1,130 @@
+<?php
+session_start();
+require_once __DIR__ . '/functions.php';
+check_session_id();
+// DB＆設定読み込み
+$config = include __DIR__ . '/config.php';
+$apiKey = $config['GOOGLE_MAPS_API_KEY'];
+$pdo    = connect_to_db();
+
+$sql = 'SELECT id, place, date, memo, latitude AS lat, longitude AS lng
+        FROM travelRecord
+        WHERE deleted_at IS NULL
+        ORDER BY date ASC';
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute();
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// 表示用にエスケープ
+$data = [];
+foreach ($rows as $r) {
+    $data[] = [
+        'id'    => (int)$r['id'],
+        'place' => htmlspecialchars($r['place'], ENT_QUOTES),
+        'date'  => htmlspecialchars($r['date'],  ENT_QUOTES),
+        'memo'  => nl2br(htmlspecialchars($r['memo'], ENT_QUOTES)),
+        'lat'   => (float)$r['lat'],
+        'lng'   => (float)$r['lng'],
+    ];
+}
+?>
 <!DOCTYPE html>
 <html lang="ja">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="./css/reset.css">
     <link rel="stylesheet" href="./css/read.css">
-    <title>Document</title>
+    <title>訪れた場所マップ</title>
 </head>
 
 <body>
     <h1>訪れた場所マップ</h1>
-    <a href="./index.php">入力画面に戻る</a>
-    <div id="map" style="height: 35rem;"></div>
-    <div id="visit-list">
-        <?php
-        $config = include('./config.php');
-        $apiKey = $config['GOOGLE_MAPS_API_KEY'];
-        // CSVの中身を1行ずつ読む
-        $lines = file("./data/data.csv");
-        $data = [];
-        // 各行に繰り返し処理
-        foreach ($lines as $line) {
-            $parts = explode(",", trim($line));
-            $place = htmlspecialchars($parts[0] ?? ''); //値が存在しなければ空文字を代入
-            $date = htmlspecialchars($parts[1] ?? '');
-            $memo = nl2br(htmlspecialchars($parts[2] ?? ''));
-
-            $data[] = [
-                'place' => htmlspecialchars($parts[0] ?? ''),
-                'date' => htmlspecialchars($parts[1] ?? ''),
-                'memo' => nl2br(htmlspecialchars($parts[2] ?? '')),
-            ];
-        }
-        // 日付で降順ソート（古い順）
-        usort($data, function ($a, $b) {
-            return strtotime($a['date']) - strtotime($b['date']);
-        });
-
-        // そのまま長いHTMLをかけるらしい
-        foreach ($data as $item) {
-            echo <<<HTML
-        <div class="visit-card">
-            <h3>{$item["place"]}</h3>
-            <p><strong>日付:</strong> {$item["date"]}</p>
-            <p>{$item["memo"]}</p>
-        </div>
-        HTML;
-        }
-        ?>
+    <div class="logout-container">
+        <a href="./logout.php">ログアウト</a>
     </div>
 
+    <a href="./write.php">入力画面に戻る</a>
+
+    <div id="map" style="height:35rem;"></div>
+
+    <div id="visit-list">
+        <?php foreach ($data as $item): ?>
+            <div class="visit-card">
+                <h3><?= $item['place'] ?></h3>
+                <p><strong>日付:</strong> <?= $item['date'] ?></p>
+                <p class="memo"><?= $item['memo'] ?></p>
+                <div class="edit-delete">
+                    <a href="edit.php?id=<?= urlencode($item['id']) ?>">編集</a>
+                    <a href="delete.php?id=<?= urlencode($item['id']) ?>">削除</a>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
     <script type="module">
+        const markers = <?= json_encode($data, JSON_UNESCAPED_UNICODE) ?>;
+
         const apiKey = "<?= $apiKey ?>";
 
-        // PHPが作ったマーカー情報をJSの配列展開
-        const markers = [
-            <?php
-            $lines = file("./data/data.csv");
-            foreach ($lines as $line) {
-                $parts = explode(",", trim($line));
-                $place = $parts[0];
-                $date = $parts[1];
-                $memo = $parts[2];
-                $lat = $parts[3];
-                $lng = $parts[4];
-                // JSオブジェクト形式
-                echo "{ name: '$place', date: '$date', memo: '$memo', lat: $lat, lng: $lng },\n";
-            }
-            ?>
-        ];
+        function initMap() {
+            const center = markers.length ? {
+                lat: markers[0].lat,
+                lng: markers[0].lng
+            } : {
+                lat: 35.6895,
+                lng: 139.6917
+            }; // 東京をデフォルトに設定
 
-        // Google mapsのスクリプトを動的読み込み
-        function loadGoogleMaps(callbackName) {
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=${callbackName}`;
-            script.async = true;
-            script.defer = true;
-            // headに追加
-            document.head.appendChild(script);
-        }
-        // Google maps初期化
-        window.initMap = () => {
             const map = new google.maps.Map(document.getElementById("map"), {
-                center: {
-                    lat: markers[0]?.lat || 0,
-                    lng: markers[0]?.lng || 0
-                },
-                zoom: 4
+                center,
+                zoom: 5,
             });
-            // 各マーカー配置
-            markers.forEach(m => {
-                const marker = new google.maps.Marker({
-                    position: {
-                        lat: m.lat,
-                        lng: m.lng
-                    },
-                    map: map,
-                    title: m.name
+
+            const pathCoordinates = [];
+
+            markers.forEach(marker => {
+                const position = {
+                    lat: marker.lat,
+                    lng: marker.lng
+                };
+                pathCoordinates.push(position);
+
+                const gMarker = new google.maps.Marker({
+                    position,
+                    map,
+                    title: marker.place,
                 });
 
-                const infowindow = new google.maps.InfoWindow({
-                    content: `<strong>${m.name}</strong><br>${m.memo}`
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `<div><strong>${marker.place}</strong><br>${marker.date}<br>${marker.memo}</div>`
                 });
 
-                marker.addListener("click", () => {
-                    infowindow.open(map, marker);
+                gMarker.addListener("click", () => {
+                    infoWindow.open(map, gMarker);
                 });
             });
-        };
 
-        // スクリプト読み込み開始
-        loadGoogleMaps("initMap");
+            if (pathCoordinates.length >= 2) {
+                const routeLine = new google.maps.Polyline({
+                    path: pathCoordinates,
+                    geodesic: true,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                });
+
+                routeLine.setMap(map);
+            }
+        }
+
+        // Google Maps APIを非同期に読み込む
+        const script = document.createElement("script");
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
+        script.async = true;
+        window.initMap = initMap;
+        document.head.appendChild(script);
     </script>
 
 </body>

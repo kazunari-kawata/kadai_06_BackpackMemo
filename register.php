@@ -4,15 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./css/index.css">
-    <title>ログイン画面</title>
+    <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="./css/register.css">
+    <title>todoリストユーザ登録画面</title>
 </head>
 
 <body>
-    <h1>Backpack Memo</h1>
-    <form action="login_act.php" method="POST">
+    <form action="register_act.php" method="POST">
         <fieldset>
-            <legend>Let's head out with us</legend>
+            <legend>ユーザ登録画面</legend>
             <div>
                 ユーザー名: <input type="text" name="username">
             </div>
@@ -20,9 +20,9 @@
                 パスワード: <input type="text" name="password">
             </div>
             <div>
-                <button>ログイン</button>
+                <button>登録する</button>
             </div>
-            <a href="register.php">登録する</a>
+            <a href="index.php">ログインする</a>
         </fieldset>
     </form>
 
