@@ -1,9 +1,12 @@
 <?php
 session_start();
-include('functions.php');
-check_session_id();
-
 require_once __DIR__ . '/functions.php';
+check_session_id();
+if (!isset($_SESSION['user_id'])) {
+    exit('ログインしてください');
+}
+$user_id = $_SESSION['user_id'];
+
 
 $id = $_GET['id'];
 
@@ -13,10 +16,11 @@ if ($id === false || $id === null) {
 }
 
 $pdo = connect_to_db();
-$sql = 'SELECT * FROM travelRecord WHERE id = :id';
+$sql = 'SELECT * FROM travelRecord WHERE id = :id AND user_id = :user_id';
 $stmt = $pdo->prepare($sql);
-// $stmt->bindValue(':id', $id, PDO::PARAM_INT);
 $stmt->bindValue(':id', $_GET['id'], PDO::PARAM_INT);
+$stmt->bindValue(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
+$stmt->execute();
 
 try {
     $status = $stmt->execute();
@@ -49,11 +53,11 @@ $record = $stmt->fetch(PDO::FETCH_ASSOC);
             </div>
             <div>
                 日付: <br>
-                <input type="date" name="place" value="<?= $record['date'] ?>">
+                <input type="date" name="date" value="<?= $record['date'] ?>">
             </div>
             <div>
                 メモ: <br>
-                <textarea type="text" name="memo" rows="5" style="width: 100%" ?><?= htmlspecialchars($record['memo'], ENT_QUOTES) ?></textarea>
+                <textarea type="text" name="memo" rows="5" style="width: 100%" ><?= htmlspecialchars($record['memo'], ENT_QUOTES) ?></textarea>
             </div>
             <div>
                 <input type="hidden" name="id" value="<?= $record['id'] ?>">

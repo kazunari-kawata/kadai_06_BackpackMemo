@@ -17,7 +17,7 @@
                 ユーザー名: <input type="text" name="username">
             </div>
             <div>
-                パスワード: <input type="text" name="password">
+                パスワード: <input type="password" name="password">
             </div>
             <div>
                 <button>ログイン</button>

@@ -2,6 +2,11 @@
 session_start();
 require_once __DIR__ . '/functions.php';
 check_session_id();
+if (!isset($_SESSION['user_id'])) {
+    exit('ログインしてください');
+}
+
+$user_id = $_SESSION['user_id'];
 // DB＆設定読み込み
 $config = include __DIR__ . '/config.php';
 $apiKey = $config['GOOGLE_MAPS_API_KEY'];
@@ -9,10 +14,11 @@ $pdo    = connect_to_db();
 
 $sql = 'SELECT id, place, date, memo, latitude AS lat, longitude AS lng
         FROM travelRecord
-        WHERE deleted_at IS NULL
+        WHERE deleted_at IS NULL AND user_id = :user_id
         ORDER BY date ASC';
 
 $stmt = $pdo->prepare($sql);
+$stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
 $stmt->execute();
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

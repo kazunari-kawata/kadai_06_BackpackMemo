@@ -33,7 +33,7 @@
             </div>
             <div id="date-container">
                 <label>日付：</label><br>
-                <input type="date" id="date" name="date" value="<?= date('Y-m-d')?>" required>
+                <input type="date" id="date" name="date" value="<?= date('Y-m-d') ?>" required>
             </div>
             <div id="memo-container">
                 <label>現地情報：</label><br>
@@ -46,7 +46,7 @@
     </form>
     <?php
     session_start();
-    include('functions.php');
+    require_once __DIR__ . '/functions.php';
     check_session_id();
 
     $config = include('./config.php');
